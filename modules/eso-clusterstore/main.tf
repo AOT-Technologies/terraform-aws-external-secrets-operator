@@ -86,3 +86,32 @@ resource "helm_release" "cluster_secret_store_tp" {
     EOF
   ]
 }
+
+# define cluster secret store for aws auth
+resource "helm_release" "cluster_secret_store_aws" {
+  count     = var.eso_authentication == "aws_irsa" ? 1 : 0
+  name      = "${var.clusterstore_helm_rls_name}-tp"
+  namespace = var.eso_namespace
+  chart     = "${path.module}/../../chart/${local.helm_raw_chart_name}"
+  version   = local.helm_raw_chart_version
+  timeout   = 600
+  values = [
+    <<-EOF
+    resources:
+      - apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: "${var.clusterstore_name}"
+        spec:
+          provider:
+            aws:
+              service: SecretsManager
+              region: ${var.clustersecretstore_region}
+               auth:
+                jwt:
+                  serviceAccountRef:
+                    name: "${var.clusterstore_secret_name}"
+                    namespace: "${var.eso_namespace}"
+    EOF
+  ]
+}
