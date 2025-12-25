@@ -68,10 +68,6 @@ variable "clusterstore_secret_apikey" {
     condition     = var.eso_authentication == "api_key" ? var.clusterstore_secret_apikey != null : true
     error_message = "API Key authentication is enabled and scope for store is cluster, therefore clusterstore_secret_apikey must be provided."
   }
-  validation {
-    condition     = var.clusterstore_secret_apikey != null || var.clusterstore_trusted_profile_name != null
-    error_message = "One of the variables clusterstore_secret_apikey and clusterstore_trusted_profile_name must be provided, cannot be both set to null"
-  }
 }
 
 ####### trusted profile
