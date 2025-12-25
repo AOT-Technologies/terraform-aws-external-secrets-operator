@@ -44,8 +44,8 @@ variable "eso_authentication" {
   description = "Authentication method, Possible values are api_key or/and trusted_profile."
   default     = "trusted_profile"
   validation {
-    condition     = contains(["api_key", "trusted_profile"], var.eso_authentication)
-    error_message = "Authentication mode allowed are api_key or/and trusted_profile."
+    condition     = contains(["api_key", "trusted_profile", "aws_irsa"], var.eso_authentication)
+    error_message = "Authentication mode allowed are aws_irsa, api_key or/and trusted_profile."
   }
   validation {
     condition     = var.eso_authentication == "trusted_profile" ? var.clusterstore_trusted_profile_name != null : true
