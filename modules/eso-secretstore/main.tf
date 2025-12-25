@@ -103,7 +103,7 @@ resource "helm_release" "external_secret_store_aws_irsa" {
                 jwt:
                   serviceAccountRef:
                     name: external-secrets
-                    namespace: "${var.eso_namespace}"
+                    namespace: "${var.sstore_namespace}"
     EOF
   ]
 }
