@@ -106,7 +106,7 @@ resource "helm_release" "cluster_secret_store_aws" {
           provider:
             aws:
               service: SecretsManager
-              region: ${var.clustersecretstore_region}
+              region: ${var.region}
                auth:
                 jwt:
                   serviceAccountRef:
