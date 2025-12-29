@@ -4,9 +4,9 @@ variable "trusted_profile_name" {
 }
 
 
-variable "secret_groups_id" {
+variable "secrets_manager_arns" {
   type        = list(string)
-  description = "The list of secret groups to limit access to for the trusted profile to create."
+  description = "The list of secrets arns (files) to limit access to for the trusted profile to create."
   default     = []
 }
 
