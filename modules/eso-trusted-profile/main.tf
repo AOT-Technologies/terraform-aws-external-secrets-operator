@@ -1,83 +1,124 @@
-### Trusted Profiles resources
+############################
+# Locals
+############################
 
-# creates a trusted profile to use for container authentication in external secrets operator
-resource "ibm_iam_trusted_profile" "trusted_profile" {
-  name        = var.trusted_profile_name
-  description = "a trusted profile to access the secrets manager instance: ${var.secrets_manager_guid}."
+locals {
+  # IBM module hardcodes ESO SA name in claim rule
+  service_account_name = "external-secrets"
+
+  # In AWS, tp_cluster_crn is reinterpreted as the EKS OIDC provider ARN
+  # Expected format:
+  # arn:aws:iam::<account_id>:oidc-provider/oidc.eks.<region>.amazonaws.com/id/<hash>
+  oidc_issuer_host = regex(
+    "oidc-provider/(.*)",
+    var.tp_cluster_crn
+  )[0]
 }
 
-# The following Rule allows incoming requests from
-# the external-secrets SA in external-secrets namespce in the
-# target cluster with the retrieved cluster's CRN.
-resource "ibm_iam_trusted_profile_claim_rule" "claim_rule" {
-  profile_id = ibm_iam_trusted_profile.trusted_profile.id
-  type       = "Profile-CR"
-  name       = "${var.trusted_profile_name}-rule"
-  cr_type    = var.trusted_profile_claim_rule_type
+############################
+# IAM Role (Trusted Profile equivalent)
+############################
 
-  dynamic "conditions" {
-    for_each = [
+resource "aws_iam_role" "trusted_profile" {
+  name = var.trusted_profile_name
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
-        claim    = "name"
-        operator = "EQUALS"
-        value    = "\"external-secrets\""
-      },
-      {
-        claim    = "namespace",
-        operator = "EQUALS",
-        value    = "\"${var.tp_namespace}\"",
-      },
-      {
-        claim    = "crn",
-        operator = "EQUALS",
-        value    = "\"${var.tp_cluster_crn}\""
+        Effect = "Allow"
+        Principal = {
+          Federated = var.tp_cluster_crn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${local.oidc_issuer_host}:sub" = "system:serviceaccount:${var.tp_namespace}:${local.service_account_name}"
+          }
+        }
       }
     ]
+  })
+}
 
-    content {
-      claim    = conditions.value["claim"]
-      operator = conditions.value["operator"]
-      value    = conditions.value["value"]
+############################################
+# IAM Policy — Secrets Manager access
+############################################
+
+# Case 1:
+# No secrets_manager_arns provided
+# → Equivalent to IBM: access to entire Secrets Manager instance
+resource "aws_iam_policy" "secrets_reader_all" {
+  count = length(var.secrets_manager_arns) == 0 ? 1 : 0
+
+  name = "${var.trusted_profile_name}-secrets-reader-all"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Case 2:
+# One or more secrets_manager_arns values provided
+# → Interpreted as explicit Secrets Manager ARNs or ARN patterns
+resource "aws_iam_policy" "secrets_reader_scoped" {
+  count = length(var.secrets_manager_arns) > 0 ? 1 : 0
+
+  name = "${var.trusted_profile_name}-secrets-reader-scoped"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = var.secrets_manager_arns
+      }
+    ]
+  })
+}
+
+############################################
+# Attach IAM policy to role
+############################################
+
+resource "aws_iam_role_policy_attachment" "attach_all" {
+  count      = length(var.secrets_manager_arns) == 0 ? 1 : 0
+  role       = aws_iam_role.trusted_profile.name
+  policy_arn = aws_iam_policy.secrets_reader_all[0].arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_scoped" {
+  count      = length(var.secrets_manager_arns) > 0 ? 1 : 0
+  role       = aws_iam_role.trusted_profile.name
+  policy_arn = aws_iam_policy.secrets_reader_scoped[0].arn
+}
+
+############################################
+# Kubernetes ServiceAccount (IRSA binding)
+############################################
+
+resource "kubernetes_service_account" "external_secrets" {
+  metadata {
+    name      = local.service_account_name
+    namespace = var.tp_namespace
+
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.trusted_profile.arn
     }
   }
 }
 
-# This Trusted Profile policy grants access to the provided secrets
-# manager instance, if one of more secret group ids are provided, it will then
-# restrict access to these secret groups with SecretsReader role.
-
-# migration definition to avoid destruction of resources with support of multiple secrets group
-moved {
-  from = module.your_trusted_profile_module_name.ibm_iam_trusted_profile_policy.policy
-  to   = module.your_trusted_profile_module_name.ibm_iam_trusted_profile_policy.policy[0]
-}
-
-# This Trusted Profile policy grants access to the provided secrets
-# manager instance, if no secrets group id or one secrets group id is provided to restrict the access to the Secrets Manager instance
-resource "ibm_iam_trusted_profile_policy" "policy" {
-  count       = length(var.secret_groups_id) <= 1 ? 1 : 0
-  profile_id  = ibm_iam_trusted_profile.trusted_profile.id
-  description = length(var.secret_groups_id) == 0 ? "IAM Trusted Profile Policy to access the secrets in the target secret groups and secrets manager instance and not restricted to any secrets group" : "IAM Trusted Profile Policy to access the secrets in the target secret group and secrets manager instance"
-  roles       = ["SecretsReader"]
-  resources {
-    service              = "secrets-manager"
-    resource_type        = length(var.secret_groups_id) == 1 ? "secret-group" : null
-    resource             = length(var.secret_groups_id) == 1 ? var.secret_groups_id[0] : null
-    resource_instance_id = var.secrets_manager_guid
-  }
-}
-
-# This Trusted Profile policy grants acccess to the provided secrets
-# manager instance, if two or more secrets groups id are provided to restrict the access to the Secrets Manager instance
-resource "ibm_iam_trusted_profile_policy" "policy_multiple_secrets_groups" {
-  count       = length(var.secret_groups_id) > 1 ? length(var.secret_groups_id) : 0
-  profile_id  = ibm_iam_trusted_profile.trusted_profile.id
-  description = "IAM Trusted Profile Policy to access the secrets in the target secrets group ${var.secret_groups_id[count.index]} and secrets manager instance"
-  roles       = ["SecretsReader"]
-  resources {
-    service              = "secrets-manager"
-    resource_type        = "secret-group"
-    resource             = var.secret_groups_id[count.index]
-    resource_instance_id = var.secrets_manager_guid
-  }
-}
