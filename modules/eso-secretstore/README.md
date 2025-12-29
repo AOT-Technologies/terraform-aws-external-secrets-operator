@@ -16,7 +16,7 @@ For more information about Trusted Profiles refer to the IBM Cloud documentation
 ```hcl
 # Replace "master" with a GIT release version to lock into a specific release
 module "eso_apikey_secretstore" {
-  source                      = "git::git@github.com:AOT-Technologies/terraform-aws-external-secrets-operator.git//modules/eso-clusterstore?ref=feat/eso-secretstore"
+  source                      = "git::git@github.com:AOT-Technologies/terraform-aws-external-secrets-operator.git//modules/eso-clusterstore?ref=main"
   eso_authentication          = "aws_irsa"
   region                      = local.sm_region
   sstore_namespace            = kubernetes_namespace.apikey_namespaces.metadata[0].name
