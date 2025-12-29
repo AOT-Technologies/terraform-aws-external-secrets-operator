@@ -33,8 +33,7 @@ resource "aws_iam_role" "trusted_profile" {
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
           StringEquals = {
-            "${local.oidc_issuer_host}:sub" =
-              "system:serviceaccount:${var.tp_namespace}:${local.service_account_name}"
+            "${local.oidc_issuer_host}:sub" = "system:serviceaccount:${var.tp_namespace}:${local.service_account_name}"
           }
         }
       }
