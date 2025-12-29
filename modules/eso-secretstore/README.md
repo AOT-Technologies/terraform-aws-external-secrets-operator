@@ -4,9 +4,10 @@ This module allows to configure an [SecretStore](https://external-secrets.io/lat
 
 For more information about SecretStore resource and about ESO please refer to the ESO documentation available [here](https://external-secrets.io/v0.8.3/guides/introduction/)
 
-This module supports SecretStore two authentication configurations to pull/push secrets with the configured Secrets Manager instance:
+This module supports three SecretStore authentication configurations to pull/push secrets with the configured Secrets Manager instance:
 - apikey authentication
 - trusted profile authentication
+- via jwt service account authentication for AWS
 
 For more information about Trusted Profiles refer to the IBM Cloud documentation available [here](https://cloud.ibm.com/docs/account?topic=account-create-trusted-profile&interface=ui)
 
@@ -15,8 +16,8 @@ For more information about Trusted Profiles refer to the IBM Cloud documentation
 ```hcl
 # Replace "master" with a GIT release version to lock into a specific release
 module "eso_apikey_secretstore" {
-  source                      = "git::https://github.com/terraform-ibm-modules/terraform-ibm-external-secrets-operator.git//modules/eso-secretstore?ref=master"
-  eso_authentication          = "api_key"
+  source                      = "git::git@github.com:AOT-Technologies/terraform-aws-external-secrets-operator.git//modules/eso-clusterstore?ref=feat/eso-secretstore"
+  eso_authentication          = "aws_irsa"
   region                      = local.sm_region
   sstore_namespace            = kubernetes_namespace.apikey_namespaces.metadata[0].name
   sstore_secrets_manager_guid = local.sm_guid

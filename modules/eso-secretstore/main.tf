@@ -77,3 +77,33 @@ resource "helm_release" "external_secret_store_tp" {
     EOF
   ]
 }
+
+# AWS Supported IRSA
+resource "helm_release" "external_secret_store_aws_irsa" {
+  count     = var.eso_authentication == "aws_irsa" ? 1 : 0
+  name      = substr(join("-", [var.sstore_namespace, var.sstore_helm_rls_name]), 0, 52)
+  namespace = var.sstore_namespace
+  chart     = "${path.module}/../../chart/${local.helm_raw_chart_name}"
+  version   = local.helm_raw_chart_version
+  timeout   = 600
+  values = [
+    <<-EOF
+    resources:
+      - apiVersion: external-secrets.io/v1
+        kind: SecretStore
+        metadata:
+          name: "${var.sstore_store_name}"
+          namespace: "${var.sstore_namespace}"
+        spec:
+          provider:
+            aws:
+              service: SecretsManager
+              region: ${var.region}
+              auth:
+                jwt:
+                  serviceAccountRef:
+                    name: external-secrets
+                    namespace: "${var.sstore_namespace}"
+    EOF
+  ]
+}
