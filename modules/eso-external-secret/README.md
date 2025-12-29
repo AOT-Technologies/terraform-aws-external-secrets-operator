@@ -14,7 +14,7 @@ For more information about ExternalSecrets on ESO please refer to the ESO docume
 ```hcl
 # Replace "master" with a GIT release version to lock into a specific release
 module "external_secret_usr_pass" {
-  source                    = "git::https://github.com/terraform-ibm-modules/terraform-ibm-external-secrets-operator.git//modules/eso-external-secret?ref=master"
+  source                    = "git::https://github.com/aot-technologies/terraform-aot-external-secrets-operator.git//modules/eso-external-secret?ref=feat/eso_external_secret"
   es_kubernetes_secret_type = "dockerconfigjson"
   sm_secret_type            = "username_password"
   sm_secret_id              = module.sm_userpass_secret.secret_id
