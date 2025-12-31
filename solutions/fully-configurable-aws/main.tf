@@ -41,8 +41,8 @@ module "eso_trusted_profile_cluster" {
   secrets_manager_arns = var.cluster_secret_arns
 }
 
-module "eso_clustersecretstore" {
-  source     = "../../modules/eso-clustersecretstore"
+module "eso_clusterstore" {
+  source     = "../../modules/eso-clusterstore"
   name       = "cluster-aws-sm"
   namespace  = var.eso_namespace
   aws_region = var.aws_region
