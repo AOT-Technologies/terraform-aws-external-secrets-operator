@@ -24,7 +24,7 @@ resource "kubernetes_namespace" "eso" {
 # Deploy External Secrets Operator
 ############################
 module "eso_external_secret" {
-  source               = "./modules/eso-external-secret"
+  source               = "../../modules/eso-external-secret"
   namespace            = var.eso_namespace
   service_account_name = "external-secrets" # must match trusted-profile SA
   chart_version        = "0.10.1"
@@ -34,7 +34,7 @@ module "eso_external_secret" {
 # Cluster-level Trusted Profile + ClusterSecretStore
 ############################
 module "eso_trusted_profile_cluster" {
-  source               = "./modules/eso-trusted-profile"
+  source               = "../../modules/eso-trusted-profile"
   trusted_profile_name = "eso-cluster-role"
   tp_namespace         = var.eso_namespace
   tp_cluster_crn       = var.eks_oidc_provider_arn
@@ -42,7 +42,7 @@ module "eso_trusted_profile_cluster" {
 }
 
 module "eso_clustersecretstore" {
-  source     = "./modules/eso-clustersecretstore"
+  source     = "../../modules/eso-clustersecretstore"
   name       = "cluster-aws-sm"
   namespace  = var.eso_namespace
   aws_region = var.aws_region
@@ -54,7 +54,7 @@ module "eso_clustersecretstore" {
 ############################
 module "eso_trusted_profile_tenant" {
   for_each             = var.secretstores
-  source               = "./modules/eso-trusted-profile"
+  source               = "../../modules/eso-trusted-profile"
   trusted_profile_name = "eso-${each.key}-role"
   tp_namespace         = each.value.namespace
   tp_cluster_crn       = var.eks_oidc_provider_arn
@@ -63,7 +63,7 @@ module "eso_trusted_profile_tenant" {
 
 module "eso_secretstore" {
   for_each   = var.secretstores
-  source     = "./modules/eso-secretstore"
+  source     = "../../modules/eso-secretstore"
   name       = "tenant-${each.key}-aws-sm"
   namespace  = each.value.namespace
   aws_region = var.aws_region
