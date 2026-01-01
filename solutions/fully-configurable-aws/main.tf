@@ -9,18 +9,7 @@ resource "kubernetes_namespace" "eso" {
 }
 
 ############################
-# Deploy External Secrets Operator
-############################
-
-module "eso_external_secret" {
-  source               = "../../modules/eso-external-secret"
-  namespace            = var.eso_namespace
-  service_account_name = "external-secrets" # must match trusted-profile SA
-  chart_version        = "0.10.1"
-}
-
-############################
-# Cluster-level Trusted Profile + ClusterSecretStore
+# Cluster-level Trusted Profile + ClusterSecretStore + External-Secrets
 ############################
 module "eso_trusted_profile_cluster" {
   source               = "../../modules/eso-trusted-profile"
@@ -28,6 +17,32 @@ module "eso_trusted_profile_cluster" {
   tp_namespace         = var.eso_namespace
   tp_cluster_crn       = var.eks_oidc_provider_arn
   secrets_manager_arns = var.cluster_secret_arns
+}
+
+module "eso_external_secrets" {
+  source = "github.com/AOT-Technologies/terraform-aws-external-secrets-operator//modules/eso-external-secret"
+
+  # --- Kubernetes ---
+  es_kubernetes_namespace     = "external-secrets"
+  es_kubernetes_secret_name   = "external-secrets"
+  es_kubernetes_secret_type   = "opaque"
+
+  # --- External Secrets Operator ---
+  eso_store_name              = "aws-secret-store"
+  eso_store_kind              = "ClusterSecretStore"
+  es_refresh_interval         = "1h"
+
+  # --- AWS Secrets Manager ---
+  sm_secret_type              = "kv"
+  sm_secret_id                = "external-secrets"
+
+  # Pull ALL keys from the JSON
+  sm_secret_property          = null
+
+  # Optional but common
+  creation_policy             = "Owner"
+  deletion_policy             = "Delete"
+  reloader_watching            = true
 }
 
 module "eso_clusterstore" {
