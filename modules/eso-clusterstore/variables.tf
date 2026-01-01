@@ -83,4 +83,5 @@ variable "clusterstore_trusted_profile_name" {
 variable "clusterstore_secrets_manager_guid" {
   type        = string
   description = "Secrets manager instance GUID for cluster secrets store where secrets will be stored or fetched from"
+  default     = null
 }

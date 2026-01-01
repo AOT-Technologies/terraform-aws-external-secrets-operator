@@ -30,11 +30,12 @@ module "eso_trusted_profile_cluster" {
 }
 
 module "eso_clusterstore" {
-  source     = "../../modules/eso-clusterstore"
-  name       = "cluster-aws-sm"
-  namespace  = var.eso_namespace
-  aws_region = var.aws_region
-  sa_name    = module.eso_trusted_profile_cluster.external_secrets_sa_name
+  source                              = "../../modules/eso-clusterstore"
+  
+  region                              = var.region
+  eso_authentication                  = "aws_irsa"
+  eso_namespace                       = "external-secrets"
+  clusterstore_secret_name            = "external-secrets"
 }
 
 ############################
