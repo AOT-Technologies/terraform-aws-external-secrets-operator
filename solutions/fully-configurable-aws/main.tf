@@ -19,7 +19,7 @@ module "eso_trusted_profile_cluster" {
   secrets_manager_arns = var.cluster_secret_arns
 }
 
-module "eso_external_secrets" {
+module "eso_external_secrets_cluster" {
   source = "github.com/AOT-Technologies/terraform-aws-external-secrets-operator//modules/eso-external-secret"
 
   # --- Kubernetes ---
@@ -57,7 +57,7 @@ module "eso_clusterstore" {
 ############################
 # Tenant-level Trusted Profiles + SecretStores + External-Secrets
 ############################
-module "eso_external_secrets" {
+module "eso_external_secrets_tenant" {
   for_each                    = var.secretstores
   source = "github.com/AOT-Technologies/terraform-aws-external-secrets-operator//modules/eso-external-secret"
 
