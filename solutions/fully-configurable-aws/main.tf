@@ -1,11 +1,15 @@
-
-############################
-# ESO Namespace
-############################
+##################################################################
+# ESO deployment
+##################################################################
 resource "kubernetes_namespace" "eso" {
   metadata {
     name = var.eso_namespace
   }
+}
+
+module "external_secrets_operator" {
+  source        = "../../"
+  eso_namespace = var.eso_namespace
 }
 
 ############################
