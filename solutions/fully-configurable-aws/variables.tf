@@ -38,10 +38,12 @@ variable "secretstores" {
 Map of tenant/namespace-specific secret stores.  
 
 Each entry should include:
+- tenant_name: Tenant that owns the namespace
 - namespace: Kubernetes namespace where secrets should be available
 - secrets_manager_arns: List of AWS Secrets Manager ARNs to grant access
 EOT
   type = map(object({
+    tenant_name          = string
     namespace            = string
     secrets_manager_arns = list(string)
   }))
