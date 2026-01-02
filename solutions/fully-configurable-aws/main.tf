@@ -29,8 +29,8 @@ module "eso_external_secrets_cluster" {
   es_refresh_interval           = "1hr"
   sm_secret_type                = "kv"
   sm_secret_id                  = "external-secrets"
-  es_helm_rls_name              = "cluster-external-secrets"
-  es_helm_rls_namespace         = "${each.value.namespace}"
+  es_helm_rls_name              = "cluster-externalsecrets"
+  es_helm_rls_namespace         = "external-secrets"
 }
 
 module "eso_clusterstore" {
@@ -49,7 +49,7 @@ module "eso_external_secrets_tenant" {
   for_each                      = var.secretstores
   source                        = "../../modules/eso-external-secret"
   eso_store_scope               = "namespace"
-  eso_store_name                = "${each.value.namespace}-secret-store"
+  eso_store_name                = "${each.value.namespace}-secretstore"
   es_kubernetes_secret_name     = "${each.value.namespace}"
   es_kubernetes_namespace       = "${each.value.namespace}"
   es_kubernetes_secret_type     = "opaque"
@@ -70,11 +70,13 @@ module "eso_trusted_profile_tenant" {
 }
 
 module "eso_secretstore" {
-  for_each   = var.secretstores
-  source     = "../../modules/eso-secretstore"
-  name       = "tenant-${each.key}-aws-sm"
-  namespace  = each.value.namespace
-  aws_region = var.aws_region
-  sa_name    = module.eso_trusted_profile_tenant[each.key].external_secrets_sa_name
+  for_each              = var.secretstores
+  source                = "../../modules/eso-secretstore"
+  region                = var.aws_region
+  eso_authentication    = "aws_irsa"
+  sstore_secret_name    = "${each.value.namespace}"
+  sstore_store_name     = "${each.value.namespace}-secretstore"
+  sstore_namespace      = "${each.value.namespace}"
+  sstore_helm_rls_name  = "${each.value.namespace}-secretstore"
 }
 
