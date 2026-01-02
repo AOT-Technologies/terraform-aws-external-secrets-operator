@@ -68,6 +68,7 @@ variable "sstore_trusted_profile_name" {
 variable "sstore_secrets_manager_guid" {
   type        = string
   description = "Secrets manager instance GUID for secrets store where secrets will be stored or fetched from"
+  default     = ""
 }
 
 variable "sstore_namespace" {
