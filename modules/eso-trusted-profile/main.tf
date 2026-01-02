@@ -106,3 +106,19 @@ resource "aws_iam_role_policy_attachment" "attach_scoped" {
   role       = aws_iam_role.trusted_profile.name
   policy_arn = aws_iam_policy.secrets_reader_scoped[0].arn
 }
+
+############################################
+# Kubernetes ServiceAccount (IRSA binding)
+############################################
+
+resource "kubernetes_service_account" "external_secrets" {
+  metadata {
+    name      = local.service_account_name
+    namespace = var.tp_namespace
+
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.trusted_profile.arn
+    }
+  }
+}
+
