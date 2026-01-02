@@ -53,7 +53,7 @@ module "eso_external_secrets_tenant" {
   es_kubernetes_secret_name     = "${each.value.namespace}"
   es_kubernetes_namespace       = "${each.value.namespace}"
   es_kubernetes_secret_type     = "opaque"
-  es_refresh_interval           = "1hr"
+  es_refresh_interval           = "1h"
   sm_secret_type                = "kv"
   sm_secret_id                  = "${each.value.namespace}"
   es_helm_rls_name              = "${each.value.namespace}-externalsecrets"

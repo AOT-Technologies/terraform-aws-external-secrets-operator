@@ -6,8 +6,8 @@ variable "eks_oidc_provider_arn" {
   type        = string
 }
 
-variable "aws_region" {
-  description = "AWS region where secrets exist and resources will be created."
+variable "region" {
+  description = "Region where secrets exist and resources will be created."
   type        = string
   default     = "ca-central-1"
 }
