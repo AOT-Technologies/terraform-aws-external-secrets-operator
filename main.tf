@@ -4,35 +4,6 @@
 # Module for deploying External Secret Operator (ESO) and use it to create and synchronize Kubernetes secrets into clusters based on Secrets-Manager secrets.
 ##############################################################################
 
-
-# creating namespace to deploy ESO into RedHat ServiceMesh
-module "eso_namespace" {
-  count   = var.eso_namespace != null ? 1 : 0
-  source  = "terraform-ibm-modules/namespace/ibm"
-  version = "1.0.3"
-  namespaces = [
-    {
-      name = var.eso_namespace
-      metadata = {
-        name = var.eso_namespace
-        labels = {
-        }
-        annotations = {
-          "istio-injection" = var.eso_enroll_in_servicemesh == true ? "enabled" : null
-        }
-      }
-    }
-  ]
-}
-
-# loading existing eso namespace
-data "kubernetes_namespace" "existing_eso_namespace" {
-  count = var.existing_eso_namespace != null ? 1 : 0
-  metadata {
-    name = var.existing_eso_namespace
-  }
-}
-
 locals {
   # namespace to use for eso. If both eso_namespace and existing_eso_namespace are not null, eso_namespace takes the precedence
   eso_namespace = var.eso_namespace != null ? var.eso_namespace : data.kubernetes_namespace.existing_eso_namespace[0].metadata[0].name
@@ -169,10 +140,9 @@ EOF
 }
 
 resource "helm_release" "external_secrets_operator" {
-  depends_on = [module.eso_namespace, data.kubernetes_namespace.existing_eso_namespace]
-
   name       = "external-secrets"
   namespace  = local.eso_namespace
+  create_namespace = true
   chart      = "external-secrets"
   version    = var.eso_chart_version
   wait       = true
@@ -233,7 +203,6 @@ locals {
 }
 
 resource "helm_release" "pod_reloader" {
-  depends_on = [module.eso_namespace, data.kubernetes_namespace.existing_eso_namespace]
   count      = var.reloader_deployed == true ? 1 : 0
   name       = "reloader"
   chart      = "reloader"
