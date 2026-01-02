@@ -5,9 +5,9 @@
 ##############################################################################
 
 locals {
-  # namespace to use for eso. If both eso_namespace and existing_eso_namespace are not null, eso_namespace takes the precedence
-  eso_namespace = var.eso_namespace != null ? var.eso_namespace : data.kubernetes_namespace.existing_eso_namespace[0].metadata[0].name
-}
+  # namespace to use for eso. 
+  eso_namespace = var.eso_namespace 
+  }
 
 locals {
   eso_helm_release_values_cri = <<-EOF
