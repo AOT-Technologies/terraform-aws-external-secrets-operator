@@ -72,7 +72,7 @@ module "eso_trusted_profile_tenant" {
 module "eso_secretstore" {
   for_each              = var.secretstores
   source                = "../../modules/eso-secretstore"
-  region                = var.aws_region
+  region                = var.region
   eso_authentication    = "aws_irsa"
   sstore_secret_name    = "${each.value.namespace}"
   sstore_store_name     = "${each.value.namespace}-secretstore"
