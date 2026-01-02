@@ -9,7 +9,8 @@ resource "kubernetes_namespace" "eso" {
 
 module "external_secrets_operator" {
   source        = "../../"
-  eso_namespace = var.eso_namespace
+  existing_eso_namespace  = var.eso_namespace
+  eso_namespace           = var.eso_namespace
 }
 
 ############################
