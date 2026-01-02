@@ -64,7 +64,7 @@ module "eso_trusted_profile_tenant" {
   for_each             = var.secretstores
   source               = "../../modules/eso-trusted-profile"
   trusted_profile_name = "eso-${each.key}-role"
-  tp_namespace         = each.value.namespace
+  tp_namespace         = "${each.key}"
   tp_cluster_crn       = var.eks_oidc_provider_arn
   secrets_manager_arns = each.value.secrets_manager_arns
 }
