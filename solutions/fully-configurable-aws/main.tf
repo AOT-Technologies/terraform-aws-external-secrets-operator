@@ -39,6 +39,7 @@ module "eso_external_secrets_cluster" {
 
 module "eso_clusterstore" {
   source                              = "../../modules/eso-clusterstore"
+  depends_on = [module.external_secrets_operator]
   
   region                              = var.region
   eso_authentication                  = "aws_irsa"
@@ -76,6 +77,7 @@ module "eso_trusted_profile_tenant" {
 module "eso_secretstore" {
   for_each              = var.secretstores
   source                = "../../modules/eso-secretstore"
+  depends_on            = [module.external_secrets_operator]
   region                = var.region
   eso_authentication    = "aws_irsa"
   sstore_secret_name    = "${each.key}"
