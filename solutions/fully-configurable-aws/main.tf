@@ -14,15 +14,8 @@ module "external_secrets_operator" {
 }
 
 ############################
-# Cluster-level Trusted Profile + ClusterSecretStore + External-Secrets
+# ClusterSecretStore + External-Secrets
 ############################
-module "eso_trusted_profile_cluster" {
-  source               = "../../modules/eso-trusted-profile"
-  trusted_profile_name = "eso-cluster-role"
-  tp_namespace         = var.eso_namespace
-  tp_cluster_crn       = var.eks_oidc_provider_arn
-  secrets_manager_arns = var.cluster_secret_arns
-}
 
 module "eso_external_secrets_cluster" {
   source                        = "../../modules/eso-external-secret"
