@@ -26,7 +26,7 @@ module "eso_external_secrets_cluster" {
   es_kubernetes_secret_name     = "external-secrets"
   es_kubernetes_namespace       = "external-secrets"
   es_kubernetes_secret_type     = "opaque"
-  es_refresh_interval           = "1hr"
+  es_refresh_interval           = "1h"
   sm_secret_type                = "kv"
   sm_secret_id                  = "external-secrets"
   es_helm_rls_name              = "cluster-externalsecrets"
