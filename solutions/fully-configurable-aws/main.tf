@@ -20,7 +20,7 @@ module "eso_trusted_profile_cluster" {
 }
 
 module "eso_external_secrets_cluster" {
-  source                        = "git::https://github.com/aot-technologies/terraform-aot-external-secrets-operator.git//modules/eso-external-secret"
+  source                        = "../../modules/eso-external-secret"
   eso_store_scope               = "cluster"
   eso_store_name                = "cluster-secret-store"
   es_kubernetes_secret_name     = "external-secrets"
@@ -47,7 +47,7 @@ module "eso_clusterstore" {
 ############################
 module "eso_external_secrets_tenant" {
   for_each                      = var.secretstores
-  source                        = "git::https://github.com/aot-technologies/terraform-aot-external-secrets-operator.git//modules/eso-external-secret?ref=main"
+  source                        = "../../modules/eso-external-secret"
   eso_store_scope               = "namespace"
   eso_store_name                = "${each.value.namespace}-secret-store"
   es_kubernetes_secret_name     = "${each.value.namespace}"
