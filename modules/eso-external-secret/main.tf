@@ -306,7 +306,7 @@ resource "helm_release" "kubernetes_secret_kv_key" {
 ### Define kubernetes secret to be installed in cluster for key-value secret based on SM kv secret type pulling all the keys structure
 resource "helm_release" "kubernetes_secret_kv_all" {
   count     = local.is_kv && local.kv_remoteref_property == "" ? 1 : 0
-  name      = local.helm_secret_name
+  name      = var.es_kubernetes_secert_name
   namespace = var.es_kubernetes_namespace
   chart     = "${path.module}/../../chart/${local.helm_raw_chart_name}"
   version   = local.helm_raw_chart_version
