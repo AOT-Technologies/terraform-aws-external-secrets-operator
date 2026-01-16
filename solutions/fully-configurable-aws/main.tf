@@ -49,7 +49,7 @@ module "eso_external_secrets_tenant" {
   source                        = "../../modules/eso-external-secret"
   eso_store_scope               = "namespace"
   eso_store_name                = "${each.key}-secretstore"
-  es_kubernetes_secret_name     = "${each.key}"
+  es_kubernetes_secret_name     = "${each.key}-externalsecrets"
   es_kubernetes_namespace       = "${each.key}"
   es_kubernetes_secret_type     = "opaque"
   es_refresh_interval           = "1h"
