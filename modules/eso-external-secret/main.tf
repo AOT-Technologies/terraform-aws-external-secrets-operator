@@ -337,7 +337,7 @@ resource "helm_release" "kubernetes_secret_kv_all" {
           data:
           - secretKey: keys
             remoteRef:
-              key: "${local.es_remoteref_key}"
+              key: "${var.sm_secret_id}"
     EOF
   ]
 }
